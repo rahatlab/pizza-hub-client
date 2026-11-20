@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, ContactShadows, Environment } from "@react-three/drei";
 import { AnimatePresence, motion } from "framer-motion";
-import { useSpring, animated } from "@react-spring/three";
 import * as THREE from "three";
 
 type FeaturedPizza = {
