@@ -1,8 +1,9 @@
-import { io, type Socket } from "socket.io-client";
+import io from "socket.io-client";
+import type { Socket as IOClient } from "socket.io-client";
 
-let socket: Socket | null = null;
+let socket: IOClient | null = null;
 
-export function getSocket(token: string): Socket {
+export function getSocket(token: string): IOClient {
   if (!socket) {
     socket = io(
       typeof window !== "undefined"
