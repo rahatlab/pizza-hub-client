@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { ApiClientError } from "@/lib/api";
+import { getSocket } from "@/lib/socket";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,6 +50,28 @@ export default function ItemDetailsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("pizzahub_token") : null;
+    if (!token) return;
+
+    const socket = getSocket(token);
+    socket.connect();
+    socket.emit("join-item", itemId);
+
+    socket.on("new-review", (data: any) => {
+      if (data.itemId === itemId) {
+        setReviews((prev) => [...prev, data.review]);
+        toast.success("New review posted!");
+      }
+    });
+
+    return () => {
+      socket.off("new-review");
+      socket.emit("leave-item", itemId);
+    };
+  }, [itemId]);
 
   useEffect(() => {
     loadItem();
