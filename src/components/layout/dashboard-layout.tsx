@@ -136,7 +136,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             >
               <Pizza className="h-4 w-4" />
             </Button>
-            <h1 className="text-h1 font-semibold">{user?.role.charAt(0).toUpperCase() + user?.role.slice(1)} Dashboard</h1>
+            <h1 className="text-h1 font-semibold">{user ? `${user.role.charAt(0).toUpperCase()}${user.role.slice(1)} Dashboard` : "Dashboard"}</h1>
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
