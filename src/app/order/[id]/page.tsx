@@ -49,7 +49,7 @@ export default function OrderFormPage() {
     <section className="mx-auto max-w-md px-4 py-12 sm:px-6">
       <Card className="card-shape">
         <CardHeader>
-          <CardTitle className="text-h1">Place Your Order</h1>
+          <CardTitle className="text-h1">Place Your Order</CardTitle>
           <CardDescription>Enter delivery details for your pizza.</CardDescription>
         </CardHeader>
         <CardContent>
