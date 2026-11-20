@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Pizza, Star, Clock, Bike } from "lucide-react";
+import { PizzaHeroSlider } from "@/components/home/pizza-hero-slider";
 import { toast } from "sonner";
 
 type MenuItem = {
@@ -67,12 +67,7 @@ export default function HomePage() {
             </Button>
           </div>
           <div className="relative h-[400px] w-full lg:w-[400px]">
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[100px]" />
-            <div className="relative z-10 h-full w-full flex items-center justify-center">
-              <div className="relative h-[300px] w-[300px] rounded-full bg-white/80 dark:bg-white/10 border border-border overflow-hidden">
-                <Pizza className="absolute inset-0 m-auto h-48 w-48 text-primary/20" />
-              </div>
-            </div>
+            <PizzaHeroSlider />
           </div>
         </div>
       </motion.div>
