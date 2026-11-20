@@ -23,7 +23,6 @@ const PIZZAS: FeaturedPizza[] = [
 
 export function PizzaHeroSlider() {
   const [index, setIndex] = useState(0);
-  const canvasRef = useRef<HTMLDivElement>(null);
   const pizzaRef = useRef<THREE.Mesh>(null);
   const crustRef = useRef<THREE.Mesh>(null);
 
@@ -74,12 +73,11 @@ export function PizzaHeroSlider() {
         </div>
       ) : (
         <Canvas
-          ref={canvasRef}
           shadows
           camera={{ position: [0, 0, 6], fov: 45 }}
           frameloop={isPaused ? "demand" : "always"}
         >
-          <Environment preset="city" intensity={0.5} />
+          <Environment preset="city" />
           <ContactShadows opacity={0.3} scale={10} blur={2} far={10} />
           <OrbitControls
             enableZoom={false}
