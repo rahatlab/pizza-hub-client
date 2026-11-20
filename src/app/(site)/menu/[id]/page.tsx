@@ -6,7 +6,17 @@ import { api } from "@/lib/api";
 import { ApiClientError } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 
 type MenuItem = {
@@ -63,16 +73,18 @@ export default function ItemDetailsPage() {
 
   async function loadReviews() {
     try {
-      const data = await api.get<{ reviews: Review[]; averageRating: number; count: number }>(
-        `/api/reviews/${itemId}`
-      );
+      const data = await api.get<{
+        reviews: Review[];
+        averageRating: number;
+        count: number;
+      }>(`/api/reviews/${itemId}`);
       setReviews(data.reviews ?? []);
     } catch {
       /* reviews may not exist yet */
     }
   }
 
-  async function handleOrder() {
+  function handleOrder() {
     setOrderDialogOpen(true);
   }
 
@@ -94,11 +106,14 @@ export default function ItemDetailsPage() {
     );
   }
 
-  if (!item) return null;
+  if (!item) {
+    return null;
+  }
 
   const avgRating =
     reviews.length > 0
-      ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+      ? (reviews.reduce((sum, r) => sum + r.rating, 0) /
+          reviews.length).toFixed(1)
       : "0.0";
 
   return (
@@ -114,12 +129,12 @@ export default function ItemDetailsPage() {
           </div>
           <h1 className="text-h1 mb-2">{item.itemName}</h1>
           <p className="text-label text-primary mb-2">
-            {item.category} • {item.location}
+            {item.category} \u00B7 {item.location}
           </p>
           <p className="text-body-lg mb-6">{item.description}</p>
           <div className="flex items-center gap-4 mb-6">
             <span className="text-h3 font-bold">
-              ৳{item.price}
+              \u09F3{item.price}
             </span>
             <div className="flex items-center gap-1 text-body-sm">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -127,12 +142,11 @@ export default function ItemDetailsPage() {
                   key={i}
                   className={`text-yellow-400 ${
                     i < Number(avgRating) ? "text-fill" : "text-muted"
-                  `}
-                "}
-              >
-                ★
-              </span>
-            ))}
+                  }`}
+                >
+                  \u2605
+                </span>
+              ))}
               <span className="ml-1">({avgRating})</span>
             </div>
           </div>
@@ -165,7 +179,7 @@ export default function ItemDetailsPage() {
                       <span className="font-medium">{r.customerName}</span>
                       <span className="text-yellow-400">
                         {Array.from({ length: r.rating }).map((_, i) => (
-                          <span key={i}>★</span>
+                          <span key={i}>\u2605</span>
                         ))}
                       </span>
                     </div>
@@ -181,7 +195,7 @@ export default function ItemDetailsPage() {
           <div className="sticky top-24 p-6 border border-border rounded-2xl bg-card">
             <h2 className="text-h2 mb-4">Order</h2>
             <p className="text-body-sm text-muted-foreground mb-6">
-              {item.itemName} — ৳{item.price}
+              {item.itemName} \u2014 \u09F3{item.price}
             </p>
             <Button
               onClick={handleOrder}
@@ -203,7 +217,7 @@ export default function ItemDetailsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Place Order</AlertDialogTitle>
             <AlertDialogDescription>
-              Order {item.itemName} for delivery. You&apos;ll be redirected to enter delivery details.
+              Order {item.itemName} for delivery. You'll be redirected to enter delivery details.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
