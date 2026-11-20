@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { clearSession, useSession } from "@/lib/session";
+import { disconnectSocket } from "@/lib/socket";
 import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 
@@ -49,6 +50,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
   function handleLogout() {
     clearSession();
+    disconnectSocket();
     window.location.href = "/sign-in";
   }
 
