@@ -284,7 +284,6 @@ export default function VendorDashboardPage() {
                 <Button type="submit" className="btn-pill">Create Item</Button>
               </div>
             </form>
-          </AlertDialogContent>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
           </AlertDialogFooter>
