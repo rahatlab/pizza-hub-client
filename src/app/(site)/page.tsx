@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PizzaHeroSlider } from "@/components/home/pizza-hero-slider";
+import { Pizza, Star, Bike } from "lucide-react";
 import { toast } from "sonner";
 
 type MenuItem = {

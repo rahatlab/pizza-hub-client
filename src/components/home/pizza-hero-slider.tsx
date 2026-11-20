@@ -42,10 +42,12 @@ export function PizzaHeroSlider() {
   useEffect(() => {
     const pizza = PIZZAS[index];
     if (pizzaRef.current) {
-      pizzaRef.current.material.color.set(pizza.toppingColor);
+      const mat = pizzaRef.current.material as THREE.MeshStandardMaterial;
+      mat.color.set(pizza.toppingColor);
     }
     if (crustRef.current) {
-      crustRef.current.material.color.set(pizza.crustColor);
+      const mat = crustRef.current.material as THREE.MeshStandardMaterial;
+      mat.color.set(pizza.crustColor);
     }
   }, [index]);
 
