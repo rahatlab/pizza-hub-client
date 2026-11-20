@@ -37,8 +37,6 @@ export default function VendorSubscriptionPage() {
     }
   }
 
-  import { toast } from "sonner";
-
   return (
     <div className="space-y-8">
       <h2 className="text-h2">Subscription</h2>
