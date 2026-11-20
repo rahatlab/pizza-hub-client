@@ -5,7 +5,13 @@ import { api } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
@@ -89,27 +95,27 @@ export default function BrowseMenuPage() {
             value={category}
             onValueChange={(v) => setCategory(v ?? "")}
           >
-            <Select.Trigger>
-              <Select.Value placeholder="Category" />
-            </Select.Trigger>
-            <Select.Content>
+            <SelectTrigger>
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
               {categories.map((c) => (
-                <Select.Item key={c} value={c}>
+                <SelectItem key={c} value={c}>
                   {c}
-                </Select.Item>
+                </SelectItem>
               ))}
-            </Select.Content>
+            </SelectContent>
           </Select>
         </div>
         <div className="w-full lg:w-1/4 space-y-2">
           <Select value={sort} onValueChange={(v) => setSort(v ?? "price_asc")}>
-            <Select.Trigger>
-              <Select.Value placeholder="Sort by price" />
-            </Select.Trigger>
-            <Select.Content>
-              <Select.Item value="price_asc">Price: Low → High</Select.Item>
-              <Select.Item value="price_desc">Price: High → Low</Select.Item>
-            </Select.Content>
+            <SelectTrigger>
+              <SelectValue placeholder="Sort by price" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="price_asc">Price: Low → High</SelectItem>
+              <SelectItem value="price_desc">Price: High → Low</SelectItem>
+            </SelectContent>
           </Select>
         </div>
         <div className="w-full lg:w-1/4 space-y-2">
@@ -169,3 +175,4 @@ function MenuCard({ item }: { item: MenuItem }) {
     </Card>
   );
 }
+
