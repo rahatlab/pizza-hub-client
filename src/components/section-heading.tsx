@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 
 interface Props {
+  eyebrow?: string;
   title: string;
   description?: string;
   action?: React.ReactNode;
@@ -13,6 +14,7 @@ interface Props {
  * site-wide, which is what the assignment means by a consistent heading style.
  */
 export function SectionHeading({
+  eyebrow,
   title,
   description,
   action,
@@ -28,6 +30,11 @@ export function SectionHeading({
       )}
     >
       <div className={cn("max-w-2xl", align === "center" && "mx-auto")}>
+        {eyebrow && (
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-faint">
+            {eyebrow}
+          </p>
+        )}
         <h2>{title}</h2>
         {description && <p className="mt-3">{description}</p>}
       </div>
