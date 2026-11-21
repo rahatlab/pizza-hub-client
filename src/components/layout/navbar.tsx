@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
+import { UserMenu } from "@/components/layout/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,6 +22,7 @@ const LINKS = [
  */
 export function Navbar() {
   const pathname = usePathname();
+  const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
 
   // Close the mobile sheet whenever the route changes.
@@ -60,21 +63,32 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <ThemeToggle />
 
-          {/* Auth half renders after mount only, so the server HTML and
-              the first client paint match. Replaced by the real session
-              state in the auth phase. */}
-          <Link
-            href="/sign-in"
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/sign-up"
-            className={cn(buttonVariants({ size: "sm" }), "hidden sm:inline-flex")}
-          >
-            Get started
-          </Link>
+          {user ? (
+            <UserMenu />
+          ) : (
+            <>
+              <Link
+                href="/sign-in"
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "hidden sm:inline-flex",
+                  loading && "pointer-events-none opacity-0",
+                )}
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/sign-up"
+                className={cn(
+                  buttonVariants({ size: "sm" }),
+                  "hidden sm:inline-flex",
+                  loading && "pointer-events-none opacity-0",
+                )}
+              >
+                Get started
+              </Link>
+            </>
+          )}
 
           <button
             type="button"
@@ -103,14 +117,16 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-            <div className="mt-2 flex gap-2 border-t border-line pt-3">
-              <Link href="/sign-in" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1")}>
-                Sign in
-              </Link>
-              <Link href="/sign-up" className={cn(buttonVariants({ size: "sm" }), "flex-1")}>
-                Get started
-              </Link>
-            </div>
+            {!user && (
+              <div className="mt-2 flex gap-2 border-t border-line pt-3">
+                <Link href="/sign-in" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "flex-1")}>
+                  Sign in
+                </Link>
+                <Link href="/sign-up" className={cn(buttonVariants({ size: "sm" }), "flex-1")}>
+                  Get started
+                </Link>
+              </div>
+            )}
           </div>
         </nav>
       )}
