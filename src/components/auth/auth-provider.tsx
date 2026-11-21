@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { API_URL, api, authRequest, getStoredToken, storeToken } from "@/lib/api";
+import { api, authRequest, getStoredToken, storeToken } from "@/lib/api";
 
 export type Role = "admin" | "vendor" | "customer";
 export type SignUpRole = "customer" | "vendor";
@@ -103,8 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Sends the browser to Google. `disableRedirect` makes Better Auth answer
-   * with the URL instead of redirecting by itself, so the same call works
-   * from a click handler.
+   * with the provider URL instead of redirecting by itself, so the same call
+   * works from a click handler.
    */
   const startGoogle = useCallback(async (callbackPath = "/auth/callback") => {
     const { url } = await authRequest<{ url: string }>("/sign-in/social", {
@@ -151,8 +151,5 @@ export function useAuth(): AuthContextValue {
 /** Where a signed-in user belongs after auth. */
 export function homeFor(role: Role): string {
   if (role === "admin") return "/admin";
-  if (role === "vendor") return "/dashboard";
   return "/dashboard";
 }
-
-export { API_URL };

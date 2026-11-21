@@ -47,11 +47,13 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
   body?: unknown;
   /** Set to false for calls that must not send the Bearer token. */
   auth?: boolean;
+  /** When set, a 401 clears the stored token and redirects to sign-in. */
+  onAuthFailure?: () => void;
 }
 
 /** Calls the PizzaHub API and unwraps the `{ success, data }` envelope. */
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { body, auth = true, headers, ...rest } = options;
+  const { body, auth = true, onAuthFailure, headers, ...rest } = options;
 
   const requestHeaders = new Headers(headers);
   if (body !== undefined && !requestHeaders.has("content-type")) {
@@ -72,6 +74,10 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   const payload = (await response.json().catch(() => null)) as Envelope<T> | null;
 
   if (!response.ok || !payload?.success) {
+    if (response.status === 401 && onAuthFailure) {
+      storeToken(null);
+      onAuthFailure();
+    }
     throw new ApiError(
       payload?.message ?? "Something went wrong, please try again",
       response.status,

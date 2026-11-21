@@ -1,12 +1,11 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ChevronDown, LayoutDashboard, LogOut, ShieldCheck, Store, UserRound } from "lucide-react";
-import { useAuth } from "@/components/auth/auth-provider";
+import { homeFor, useAuth } from "@/components/auth/auth-provider";
 import { cn } from "@/lib/utils";
 
 /** Avatar + dropdown shown in the navbar once a session exists. */
@@ -45,8 +44,6 @@ export function UserMenu() {
     .join("")
     .toUpperCase();
 
-  const dashboardHref = user.role === "admin" ? "/admin" : "/dashboard";
-
   async function handleSignOut() {
     setBusy(true);
     try {
@@ -67,10 +64,7 @@ export function UserMenu() {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className={cn(
-          "flex items-center gap-2 rounded-full border border-line bg-raised py-1 pl-1 pr-2.5 transition-colors",
-          "hover:border-line-strong",
-        )}
+        className="flex items-center gap-2 rounded-full border border-line bg-raised py-1 pl-1 pr-2.5 transition-colors hover:border-line-strong"
       >
         <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-full bg-sunken text-xs font-bold text-neutral">
           {user.image ? (
@@ -115,24 +109,30 @@ export function UserMenu() {
           </div>
 
           <div className="p-1.5">
-            <Link
-              href={dashboardHref}
+            <button
+              type="button"
               role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral hover:bg-sunken"
+              onClick={() => {
+                setOpen(false);
+                router.push(homeFor(user.role));
+              }}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-neutral hover:bg-sunken"
             >
               <LayoutDashboard className="h-4 w-4 text-muted" aria-hidden />
               Dashboard
-            </Link>
-            <Link
-              href="/profile"
+            </button>
+            <button
+              type="button"
               role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral hover:bg-sunken"
+              onClick={() => {
+                setOpen(false);
+                router.push("/profile");
+              }}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-neutral hover:bg-sunken"
             >
               <UserRound className="h-4 w-4 text-muted" aria-hidden />
               Profile
-            </Link>
+            </button>
             <button
               type="button"
               role="menuitem"
