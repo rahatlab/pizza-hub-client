@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Loader2, MapPin, Star, Store } from "lucide-react";
+import { ArrowLeft, Calendar, Loader2, MapPin, Package, Star, Store } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { api } from "@/lib/api";
 import { buttonVariants } from "@/components/ui/button";
@@ -42,6 +42,7 @@ export default function MenuItemDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id;
   const { user } = useAuth();
+  const router = useRouter();
 
   const [item, setItem] = useState<ItemDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,14 @@ export default function MenuItemDetailPage() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  const [showOrder, setShowOrder] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [deliveryDate, setDeliveryDate] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [ordering, setOrdering] = useState(false);
 
   async function load() {
     if (!id) return;
@@ -88,6 +97,39 @@ export default function MenuItemDetailPage() {
       toast.error(err instanceof Error ? err.message : "Could not post your review");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function placeOrder(event: React.FormEvent) {
+    event.preventDefault();
+    if (!id || !item) return;
+    if (!deliveryDate) {
+      toast.error("Choose a delivery date");
+      return;
+    }
+    if (address.trim().length < 5) {
+      toast.error("Enter a delivery address");
+      return;
+    }
+    setOrdering(true);
+    try {
+      const data = await api<{ id: string }>("/api/orders", {
+        method: "POST",
+        body: {
+          items: [{ itemId: id, quantity }],
+          deliveryDate,
+          address: address.trim(),
+          phone: phone.trim(),
+          instructions: instructions.trim(),
+        },
+      });
+      toast.success("Order placed! Track it on your orders page.");
+      setShowOrder(false);
+      router.push(`/orders/${data.id}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not place your order");
+    } finally {
+      setOrdering(false);
     }
   }
 
@@ -220,9 +262,11 @@ export default function MenuItemDetailPage() {
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
+                onClick={() => setShowOrder((v) => !v)}
                 className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-white transition-colors hover:bg-primary-strong"
               >
-                Add to cart
+                <Package className="h-4 w-4" aria-hidden />
+                {showOrder ? "Hide order form" : "Order now"}
               </button>
               <button
                 type="button"
@@ -231,6 +275,107 @@ export default function MenuItemDetailPage() {
                 Save to favourites
               </button>
             </div>
+
+            {showOrder && (
+              <form onSubmit={placeOrder} className="ph-card space-y-4 p-5">
+                <p className="text-sm font-semibold text-neutral">Place your order</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="qty" className="mb-1.5 block text-xs font-semibold text-neutral">
+                      Quantity
+                    </label>
+                    <input
+                      id="qty"
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={quantity}
+                      onChange={(e) => setQuantity(Math.max(1, Number(e.target.value) || 1))}
+                      className="h-10 w-full rounded-xl border border-line bg-raised px-3 text-sm text-neutral outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="date" className="mb-1.5 block text-xs font-semibold text-neutral">
+                      Delivery date
+                    </label>
+                    <input
+                      id="date"
+                      type="date"
+                      value={deliveryDate}
+                      onChange={(e) => setDeliveryDate(e.target.value)}
+                      min={new Date().toISOString().slice(0, 10)}
+                      className="h-10 w-full rounded-xl border border-line bg-raised px-3 text-sm text-neutral outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="addr" className="mb-1.5 block text-xs font-semibold text-neutral">
+                    Delivery address
+                  </label>
+                  <input
+                    id="addr"
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="House, road, area, city"
+                    className="h-10 w-full rounded-xl border border-line bg-raised px-3 text-sm text-neutral outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="phn" className="mb-1.5 block text-xs font-semibold text-neutral">
+                      Phone (optional)
+                    </label>
+                    <input
+                      id="phn"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+880 1X XXX XXXXX"
+                      className="h-10 w-full rounded-xl border border-line bg-raised px-3 text-sm text-neutral outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="note" className="mb-1.5 block text-xs font-semibold text-neutral">
+                      Notes (optional)
+                    </label>
+                    <input
+                      id="note"
+                      type="text"
+                      value={instructions}
+                      onChange={(e) => setInstructions(e.target.value)}
+                      placeholder="Ring the bell…"
+                      className="h-10 w-full rounded-xl border border-line bg-raised px-3 text-sm text-neutral outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between border-t border-line pt-3">
+                  <p className="text-sm text-muted">
+                    Total:{" "}
+                    <span className="font-semibold text-neutral">
+                      ${((item.price * quantity) + 2.5).toFixed(2)}
+                    </span>
+                    <span className="ml-1 text-xs text-faint">(incl. $2.50 delivery)</span>
+                  </p>
+                  <button
+                    type="submit"
+                    disabled={ordering || !user}
+                    className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-strong disabled:opacity-60"
+                  >
+                    {ordering && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+                    {ordering ? "Placing…" : "Place order"}
+                  </button>
+                </div>
+                {!user && (
+                  <p className="text-xs text-muted">
+                    <Link href="/sign-in" className="font-semibold text-primary hover:underline">
+                      Sign in
+                    </Link>{" "}
+                    to place an order.
+                  </p>
+                )}
+              </form>
+            )}
 
             <p className="text-xs text-faint">
               Vendor ID: {item.vendorId} · Added{" "}
