@@ -1,26 +1,225 @@
 @import "tailwindcss";
 
+/* ============================================================
+   PizzaHub design tokens
+   Sample design → light and dark palettes, one type system.
+   Headings are Fraunces in BOTH themes (assignment requires a
+   consistent heading style across sections).
+   ============================================================ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- Light palette (from the sample board) --- */
+  --ph-primary: #d62828;
+  --ph-primary-strong: #a31621;
+  --ph-primary-soft: #fbe9e9;
+
+  --ph-secondary: #f4a261;
+  --ph-secondary-strong: #d97f3c;
+  --ph-secondary-soft: #fdefe2;
+
+  --ph-tertiary: #2d6a4f;
+  --ph-tertiary-strong: #1f4d39;
+  --ph-tertiary-soft: #e6f2ec;
+
+  /* `neutral` is the TEXT colour, never the background — backgrounds are
+     surface / raised / sunken. Keeping them separate is what makes the
+     dark palette swap work without inverting the text. */
+  --ph-neutral: #211c19;
+  --ph-neutral-muted: #6b615b;
+  --ph-neutral-faint: #8f847d;
+
+  --ph-surface: #fdf8f3;
+  --ph-surface-raised: #ffffff;
+  --ph-surface-sunken: #f6efe7;
+  --ph-border: #e8ded3;
+  --ph-border-strong: #d6c8ba;
+
+  --ph-gold: #e9b44c;
+
+  /* --- Type --- */
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Radius / shadow --- */
+  --ph-radius: 0.75rem;
+  --ph-shadow: 0 1px 2px rgb(33 28 25 / 0.04), 0 8px 24px -12px rgb(33 28 25 / 0.18);
+  --ph-shadow-lifted: 0 2px 4px rgb(33 28 25 / 0.05), 0 20px 40px -20px rgb(33 28 25 / 0.28);
 }
 
+.dark {
+  /* --- Dark palette (from the sample board) --- */
+  --ph-primary: #ff4d4d;
+  --ph-primary-strong: #ff7a7a;
+  --ph-primary-soft: #3a1618;
+
+  --ph-secondary: #f6b26b;
+  --ph-secondary-strong: #f9c891;
+  --ph-secondary-soft: #3a2a17;
+
+  --ph-tertiary: #52b788;
+  --ph-tertiary-strong: #74c9a3;
+  --ph-tertiary-soft: #17332a;
+
+  /* TEXT colour (light on dark), not the background. */
+  --ph-neutral: #f5efe8;
+  --ph-neutral-muted: #b3a79e;
+  --ph-neutral-faint: #948880;
+
+  --ph-surface: #1a1512;
+  --ph-surface-raised: #241e1a;
+  --ph-surface-sunken: #120e0c;
+  --ph-border: #362d28;
+  --ph-border-strong: #4a3f38;
+
+  --ph-gold: #f0c55e;
+
+  --ph-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --ph-shadow-lifted: 0 2px 4px rgb(0 0 0 / 0.5), 0 20px 40px -20px rgb(0 0 0 / 0.7);
+}
+
+/* Map the tokens onto Tailwind's color namespace so utilities
+   like bg-surface, text-neutral, border-line all resolve. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--ph-primary);
+  --color-primary-strong: var(--ph-primary-strong);
+  --color-primary-soft: var(--ph-primary-soft);
+
+  --color-secondary: var(--ph-secondary);
+  --color-secondary-strong: var(--ph-secondary-strong);
+  --color-secondary-soft: var(--ph-secondary-soft);
+
+  --color-tertiary: var(--ph-tertiary);
+  --color-tertiary-strong: var(--ph-tertiary-strong);
+  --color-tertiary-soft: var(--ph-tertiary-soft);
+
+  --color-neutral: var(--ph-neutral);
+  --color-muted: var(--ph-neutral-muted);
+  --color-faint: var(--ph-neutral-faint);
+
+  --color-surface: var(--ph-surface);
+  --color-raised: var(--ph-surface-raised);
+  --color-sunken: var(--ph-surface-sunken);
+  --color-line: var(--ph-border);
+  --color-line-strong: var(--ph-border-strong);
+  --color-gold: var(--ph-gold);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-body);
+
+  --radius-ph: var(--ph-radius);
+
+  --shadow-ph: var(--ph-shadow);
+  --shadow-lifted: var(--ph-shadow-lifted);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ---------- Base ---------- */
+@layer base {
+  * {
+    border-color: var(--ph-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--ph-surface);
+    color: var(--ph-neutral);
+    font-family: var(--font-body);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* One heading style for the whole site — assignment requirement. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    color: var(--ph-neutral);
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+
+  h1 {
+    font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: clamp(1.875rem, 1.4rem + 1.9vw, 3rem);
+    font-weight: 600;
+  }
+
+  h3 {
+    font-size: clamp(1.25rem, 1.08rem + 0.6vw, 1.75rem);
+    font-weight: 600;
+  }
+
+  p {
+    line-height: 1.7;
+    color: var(--ph-neutral-muted);
+    /* Keep body copy under ~70 characters per line */
+    max-width: 68ch;
+  }
+
+  ::selection {
+    background-color: var(--ph-primary);
+    color: #fff;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ph-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  /* One container for every section — keeps gutters identical site-wide. */
+  .ph-container {
+    width: 100%;
+    max-width: 80rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .ph-container {
+      padding-inline: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .ph-container {
+      padding-inline: 2rem;
+    }
+  }
+
+  .ph-section {
+    padding-block: clamp(3.5rem, 2rem + 6vw, 7rem);
+  }
+
+  .ph-card {
+    background-color: var(--ph-surface-raised);
+    border: 1px solid var(--ph-border);
+    border-radius: var(--ph-radius);
+    box-shadow: var(--ph-shadow);
+  }
 }
