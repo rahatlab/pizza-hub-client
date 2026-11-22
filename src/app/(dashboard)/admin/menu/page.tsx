@@ -5,13 +5,10 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check, Loader2, Trash2, X } from "lucide-react";
-import { useAuth } from "@/components/auth/auth-provider";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { api } from "@/lib/api";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 interface Item {
   id: string;
@@ -29,7 +26,6 @@ interface Item {
 }
 
 export default function AdminMenuPage() {
-  const { user } = useAuth();
   const searchParams = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,11 +41,6 @@ export default function AdminMenuPage() {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(t);
   }, [search]);
-
-  useEffect(() => {
-    const s = searchParams.get("status");
-    if (s !== null && s !== statusFilter) setStatusFilter(s);
-  }, [searchParams]);
 
   async function load() {
     setLoading(true);

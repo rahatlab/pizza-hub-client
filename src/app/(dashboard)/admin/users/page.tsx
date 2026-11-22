@@ -41,12 +41,6 @@ export default function AdminUsersPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  // Keep filter in sync with ?role= deep links.
-  useEffect(() => {
-    const r = searchParams.get("role");
-    if (r !== null && r !== roleFilter) setRoleFilter(r);
-  }, [searchParams]);
-
   async function load() {
     setLoading(true);
     try {

@@ -27,11 +27,6 @@ const COPY = {
 
 export default function DashboardHomePage() {
   const { user } = useAuth();
-  if (!user) return null;
-
-  const copy = COPY[user.role];
-  const firstName = user.name.split(" ")[0];
-
   const searchParams = useSearchParams();
   const [stats, setStats] = useState<{ label: string; value: string }[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -39,7 +34,7 @@ export default function DashboardHomePage() {
   useEffect(() => {
     const upgrade = searchParams.get("upgrade");
     if (upgrade === "success") toast.success("Welcome to Premium! Your plan is now active.");
-    if (upgrade === "cancelled") toast.info("Checkout cancelled — you're still on the Free plan.");
+    if (upgrade === "cancelled") toast.info("Checkout cancelled - you're still on the Free plan.");
   }, [searchParams]);
 
   useEffect(() => {
@@ -108,6 +103,11 @@ export default function DashboardHomePage() {
       cancelled = true;
     };
   }, [user]);
+
+  if (!user) return null;
+
+  const copy = COPY[user.role];
+  const firstName = user.name.split(" ")[0];
 
   return (
     <div className="space-y-8">
