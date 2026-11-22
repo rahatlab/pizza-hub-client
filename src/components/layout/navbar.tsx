@@ -10,9 +10,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const LINKS = [
-  { href: "/menu", label: "Menu" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
+  { href: "/", label: "Home" },
+  { href: "/menu", label: "Browse Menu" },
 ];
 
 /**
