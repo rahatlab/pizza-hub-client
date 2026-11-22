@@ -94,27 +94,29 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         })}
       </nav>
 
-      <div className="rounded-xl border border-line bg-sunken/60 p-3">
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-neutral">
-          <Store className="h-3.5 w-3.5 text-muted" aria-hidden />
-          {user.plan === "premium" ? "Premium plan" : "Free plan"}
-        </p>
-        <p className="mt-1 text-xs leading-relaxed text-muted">
-          {user.role === "vendor"
-            ? user.plan === "premium"
-              ? "Unlimited menu items."
-              : "Up to 3 active menu items."
-            : "Browse, order and track deliveries."}
-        </p>
-        {user.role === "vendor" && user.plan !== "premium" && (
-          <Link
-            href="/dashboard/upgrade"
-            className="mt-2 inline-flex w-full items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary-strong"
-          >
-            Upgrade to Premium
-          </Link>
-        )}
-      </div>
+      {user.role !== "admin" && (
+        <div className="rounded-xl border border-line bg-sunken/60 p-3">
+          <p className="flex items-center gap-1.5 text-xs font-semibold text-neutral">
+            <Store className="h-3.5 w-3.5 text-muted" aria-hidden />
+            {user.plan === "premium" ? "Premium plan" : "Free plan"}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-muted">
+            {user.role === "vendor"
+              ? user.plan === "premium"
+                ? "Unlimited menu items."
+                : "Up to 3 active menu items."
+              : "Browse, order and track deliveries."}
+          </p>
+          {user.role === "vendor" && user.plan !== "premium" && (
+            <Link
+              href="/dashboard/upgrade"
+              className="mt-2 inline-flex w-full items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary-strong"
+            >
+              Upgrade to Premium
+            </Link>
+          )}
+        </div>
+      )}
     </div>
   );
 
