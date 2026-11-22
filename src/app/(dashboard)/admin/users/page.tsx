@@ -1,14 +1,31 @@
 "use client";
 
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, ShieldCheck, Store, UserRound } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { RequireAuth } from "@/components/auth/require-auth";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import Image from "next/image";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -114,25 +131,26 @@ export default function AdminUsersPage() {
               Every registered customer, vendor and admin on the platform.
             </p>
           </div>
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name or email"
-            aria-label="Search users"
-            className="h-10 w-48 rounded-full border border-line bg-raised px-4 text-sm text-neutral outline-none focus:border-primary"
-          />
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            aria-label="Filter by role"
-            className="h-10 rounded-full border border-line bg-raised px-4 text-sm text-neutral outline-none focus:border-primary"
-          >
-            <option value="">All roles</option>
-            <option value="customer">Customers</option>
-            <option value="vendor">Vendors</option>
-            <option value="admin">Admins</option>
-          </select>
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name or email"
+              aria-label="Search users"
+              className="h-10 w-48"
+            />
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="h-10 w-40">
+                <SelectValue placeholder="All roles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All roles</SelectItem>
+                <SelectItem value="customer">Customers</SelectItem>
+                <SelectItem value="vendor">Vendors</SelectItem>
+                <SelectItem value="admin">Admins</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </header>
 
         {loading ? (
@@ -156,43 +174,47 @@ export default function AdminUsersPage() {
           <EmptyState title="No users" description="No accounts match this filter." emoji="👥" />
         ) : (
           <div className="ph-card overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-line text-left text-xs font-semibold uppercase tracking-wide text-faint">
-                  <th className="px-4 py-3">User</th>
-                  <th className="px-4 py-3">Role</th>
-                  <th className="px-4 py-3">Plan</th>
-                  <th className="px-4 py-3">Joined</th>
-                  <th className="px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {users.map((u) => (
-                  <tr key={u.id} className="hover:bg-sunken/50">
-                    <td className="px-4 py-3">
+                  <TableRow key={u.id}>
+                    <TableCell>
                       <div className="flex items-center gap-3">
-                        <span className="grid h-8 w-8 place-items-center rounded-full bg-sunken text-xs font-bold text-neutral">
-                          {u.image ? (
-                            <Image src={u.image} alt="" width={32} height={32} className="h-full w-full rounded-full object-cover" />
-                          ) : (
-                            u.name
+                        <Avatar className="h-8 w-8">
+                          {u.image && <AvatarImage src={u.image} alt={u.name} />}
+                          <AvatarFallback>
+                            {u.name
                               .split(" ")
                               .map((p) => p[0])
                               .join("")
                               .slice(0, 2)
-                              .toUpperCase()
-                          )}
-                        </span>
+                              .toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
                         <div>
                           <p className="font-medium text-neutral">{u.name}</p>
                           <p className="text-xs text-muted">{u.email}</p>
                           {u.businessName && (
                             <p className="text-xs text-faint">{u.businessName}</p>
                           )}
+                          {(u.isBlocked ?? false) && (
+                            <span className="mt-1 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                              Blocked
+                            </span>
+                          )}
                         </div>
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell>
                       <span className="inline-flex items-center gap-1 rounded-full bg-sunken px-2 py-0.5 text-xs font-semibold capitalize text-muted">
                         {u.role === "admin" ? (
                           <ShieldCheck className="h-3 w-3" aria-hidden />
@@ -203,57 +225,58 @@ export default function AdminUsersPage() {
                         )}
                         {u.role}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 capitalize text-muted">{u.plan ?? "—"}</td>
-                    <td className="px-4 py-3 text-muted">
+                    </TableCell>
+                    <TableCell className="capitalize text-muted">{u.plan ?? "—"}</TableCell>
+                    <TableCell className="text-muted">
                       {new Date(u.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      {(u.isBlocked ?? false) && (
-                        <span className="mb-1 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
-                          Blocked
-                        </span>
-                      )}
-                      {u.id !== currentUser?.id && (
-                        <select
-                          value={u.role}
-                          onChange={(e) => {
-                            if (e.target.value !== u.role) {
-                              setRoleChangeTarget({ user: u, role: e.target.value });
-                            }
-                          }}
-                          disabled={changing === u.id || (u.isBlocked ?? false)}
-                          className="h-8 rounded-lg border border-line bg-raised px-2 text-xs text-neutral outline-none focus:border-primary disabled:opacity-60"
-                        >
-                          <option value="customer">Customer</option>
-                          <option value="vendor">Vendor</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      )}
-                      {u.id !== currentUser?.id && (
-                        <button
-                          type="button"
-                          onClick={() => setBlockTarget(u)}
-                          disabled={blocking === u.id}
-                          className="ml-2 inline-flex h-8 items-center rounded-lg border border-line bg-raised px-2 text-xs font-semibold text-neutral transition-colors hover:border-line-strong disabled:opacity-60"
-                        >
-                          {blocking === u.id ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                          ) : (u.isBlocked ?? false) ? (
-                            "Unblock"
-                          ) : (
-                            "Block"
-                          )}
-                        </button>
-                      )}
-                      {changing === u.id && (
-                        <Loader2 className="ml-2 inline h-3.5 w-3.5 animate-spin text-muted" aria-hidden />
-                      )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {u.id !== currentUser?.id && (
+                          <>
+                            <Select
+                              value={u.role}
+                              onValueChange={(role) => {
+                                if (role !== u.role) {
+                                  setRoleChangeTarget({ user: u, role });
+                                }
+                              }}
+                              disabled={changing === u.id || (u.isBlocked ?? false)}
+                            >
+                              <SelectTrigger className="h-8 w-28">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="customer">Customer</SelectItem>
+                                <SelectItem value="vendor">Vendor</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <button
+                              type="button"
+                              onClick={() => setBlockTarget(u)}
+                              disabled={blocking === u.id}
+                              className="inline-flex h-8 items-center rounded-lg border border-line bg-raised px-2 text-xs font-semibold text-neutral transition-colors hover:border-line-strong disabled:opacity-60"
+                            >
+                              {blocking === u.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                              ) : (u.isBlocked ?? false) ? (
+                                "Unblock"
+                              ) : (
+                                "Block"
+                              )}
+                            </button>
+                          </>
+                        )}
+                        {changing === u.id && (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-muted" aria-hidden />
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>

@@ -8,6 +8,14 @@ import { Check, Loader2, Trash2, X } from "lucide-react";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { api } from "@/lib/api";
 
 interface Item {
@@ -103,26 +111,25 @@ export default function AdminMenuPage() {
               Review items submitted by vendors before they go live.
             </p>
           </div>
-          <input
-            type="search"
+          <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search items"
             aria-label="Search menu items"
-            className="h-10 w-48 rounded-full border border-line bg-raised px-4 text-sm text-neutral outline-none focus:border-primary"
+            className="h-10 w-48"
           />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            aria-label="Filter by status"
-            className="h-10 rounded-full border border-line bg-raised px-4 text-sm text-neutral outline-none focus:border-primary"
-          >
-            <option value="">All</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-            <option value="inactive">Inactive</option>
-          </select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-10 w-40">
+              <SelectValue placeholder="All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
         </header>
 
         {loading ? (
