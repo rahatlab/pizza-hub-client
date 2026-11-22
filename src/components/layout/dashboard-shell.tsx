@@ -28,9 +28,11 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, roles: ["admin", "vendor", "customer"] },
   { href: "/dashboard/orders", label: "Customer Orders", icon: ShoppingBag, roles: ["vendor", "admin"] },
-  { href: "/dashboard/menu", label: "Menu Items", icon: MenuIcon, roles: ["vendor", "admin"] },
-  { href: "/dashboard/transactions", label: "Transactions", icon: Wallet, roles: ["vendor", "admin"] },
-  { href: "/dashboard/users", label: "Users", icon: Users, roles: ["admin"] },
+  { href: "/dashboard/menu", label: "My Menu Items", icon: MenuIcon, roles: ["vendor"] },
+  { href: "/admin/menu", label: "Manage Menu Items", icon: MenuIcon, roles: ["admin"] },
+  { href: "/admin/transactions", label: "Transactions", icon: Wallet, roles: ["admin"] },
+  { href: "/admin/users", label: "Manage Users", icon: Users, roles: ["admin"] },
+  { href: "/orders", label: "My Orders", icon: ShoppingBag, roles: ["customer"] },
   { href: "/profile", label: "Profile", icon: CircleUserRound, roles: ["admin", "vendor", "customer"] },
 ];
 
@@ -104,6 +106,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               : "Up to 3 active menu items."
             : "Browse, order and track deliveries."}
         </p>
+        {user.role === "vendor" && user.plan !== "premium" && (
+          <Link
+            href="/dashboard/upgrade"
+            className="mt-2 inline-flex w-full items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary-strong"
+          >
+            Upgrade to Premium
+          </Link>
+        )}
       </div>
     </div>
   );
