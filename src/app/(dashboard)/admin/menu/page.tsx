@@ -4,9 +4,10 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, Loader2, Trash2, X } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { RequireAuth } from "@/components/auth/require-auth";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { api } from "@/lib/api";
 import { buttonVariants } from "@/components/ui/button";
@@ -33,7 +34,17 @@ export default function AdminMenuPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "pending");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [acting, setActing] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Item | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [moderateTarget, setModerateTarget] = useState<{ item: Item; status: "approved" | "rejected" } | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
   useEffect(() => {
     const s = searchParams.get("status");
@@ -43,8 +54,11 @@ export default function AdminMenuPage() {
   async function load() {
     setLoading(true);
     try {
-      const params = statusFilter ? `?status=${statusFilter}` : "";
-      const data = await api<{ items: Item[] }>(`/api/admin/menu${params}`);
+      const params = new URLSearchParams();
+      if (statusFilter) params.set("status", statusFilter);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      const qs = params.toString();
+      const data = await api<{ items: Item[] }>(`/api/admin/menu${qs ? `?${qs}` : ""}`);
       setItems(data.items);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not load items");
@@ -55,18 +69,36 @@ export default function AdminMenuPage() {
 
   useEffect(() => {
     void load();
-  }, [statusFilter]);
+  }, [statusFilter, debouncedSearch]);
 
-  async function moderate(id: string, status: "approved" | "rejected") {
-    setActing(id);
+  async function confirmModerate() {
+    if (!moderateTarget) return;
+    const { item, status } = moderateTarget;
+    setActing(item.id);
     try {
-      await api(`/api/menu/${id}/moderate`, { method: "PATCH", body: { status } });
+      await api(`/api/menu/${item.id}/moderate`, { method: "PATCH", body: { status } });
       toast.success(`Item ${status}`);
+      setModerateTarget(null);
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not update item");
     } finally {
       setActing(null);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await api(`/api/menu/${deleteTarget.id}`, { method: "DELETE" });
+      toast.success("Item deleted");
+      setDeleteTarget(null);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not delete item");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -80,6 +112,14 @@ export default function AdminMenuPage() {
               Review items submitted by vendors before they go live.
             </p>
           </div>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search items"
+            aria-label="Search menu items"
+            className="h-10 w-48 rounded-full border border-line bg-raised px-4 text-sm text-neutral outline-none focus:border-primary"
+          />
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -138,7 +178,7 @@ export default function AdminMenuPage() {
                   <div className="flex shrink-0 items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => moderate(item.id, "approved")}
+                      onClick={() => setModerateTarget({ item, status: "approved" })}
                       disabled={acting === item.id}
                       className="inline-flex h-9 items-center gap-1.5 rounded-full bg-tertiary px-4 text-xs font-semibold text-white transition-colors hover:bg-tertiary-strong disabled:opacity-60"
                     >
@@ -147,12 +187,21 @@ export default function AdminMenuPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => moderate(item.id, "rejected")}
+                      onClick={() => setModerateTarget({ item, status: "rejected" })}
                       disabled={acting === item.id}
                       className="inline-flex h-9 items-center gap-1.5 rounded-full border border-primary bg-primary-soft px-4 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-60"
                     >
                       <X className="h-3.5 w-3.5" />
                       Reject
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteTarget(item)}
+                      disabled={acting === item.id}
+                      className="grid h-9 w-9 place-items-center rounded-full border border-line bg-raised text-primary transition-colors hover:bg-primary-soft disabled:opacity-60"
+                      aria-label={`Delete ${item.itemName}`}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 )}
@@ -161,6 +210,32 @@ export default function AdminMenuPage() {
           </ul>
         )}
       </div>
+
+      <ConfirmDialog
+        open={moderateTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setModerateTarget(null);
+        }}
+        title={moderateTarget ? `${moderateTarget.status === "approved" ? "Approve" : "Reject"} item?` : "Confirm"}
+        description={moderateTarget ? `${moderateTarget.status === "approved" ? "Approve" : "Reject"} "${moderateTarget.item.itemName}"?` : undefined}
+        confirmLabel={moderateTarget?.status === "approved" ? "Approve" : "Reject"}
+        destructive={moderateTarget?.status === "rejected"}
+        loading={acting !== null}
+        onConfirm={confirmModerate}
+      />
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete menu item?"
+        description={deleteTarget ? `Delete "${deleteTarget.itemName}"? This cannot be undone.` : undefined}
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={confirmDelete}
+      />
     </RequireAuth>
   );
 }
