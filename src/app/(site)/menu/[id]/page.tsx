@@ -29,6 +29,7 @@ interface ItemDetail {
   location: string;
   images: string[];
   vendorId: string;
+  vendor?: { id: string; name: string; businessName: string } | null;
   status: string;
   ratingAvg: number;
   ratingCount: number;
@@ -246,6 +247,15 @@ export default function MenuItemDetailPage() {
                   <MapPin className="h-4 w-4" aria-hidden />
                   {item.location}
                 </span>
+                {item.vendor && (
+                  <Link
+                    href={`/vendors/${item.vendor.id}`}
+                    className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+                  >
+                    <Store className="h-4 w-4" aria-hidden />
+                    {item.vendor.businessName || item.vendor.name}
+                  </Link>
+                )}
               </div>
             </div>
 
