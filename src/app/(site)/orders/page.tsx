@@ -70,14 +70,22 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   async function load() {
     setLoading(true);
     setError(null);
     try {
-      const params = statusFilter ? `?status=${statusFilter}` : "";
-      const data = await api<{ orders: Order[]; pagination: unknown }>(`/api/orders${params}`);
+      const params = new URLSearchParams();
+      if (statusFilter) params.set("status", statusFilter);
+      params.set("page", String(page));
+      params.set("limit", "10");
+      const data = await api<{ orders: Order[]; pagination: { totalPages: number } }>(
+        `/api/orders?${params.toString()}`,
+      );
       setOrders(data.orders);
+      setTotalPages(data.pagination?.totalPages ?? 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load orders");
     } finally {
@@ -87,7 +95,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     void load();
-  }, [statusFilter]);
+  }, [statusFilter, page]);
 
   if (!user) return null;
 
@@ -187,6 +195,29 @@ export default function OrdersPage() {
               </li>
             ))}
           </ul>
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                disabled={page <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="inline-flex h-9 items-center rounded-full border border-line bg-raised px-4 text-sm font-medium text-neutral transition-colors hover:bg-sunken disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-muted">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="inline-flex h-9 items-center rounded-full border border-line bg-raised px-4 text-sm font-medium text-neutral transition-colors hover:bg-sunken disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         )}
       </div>
     </RequireAuth>

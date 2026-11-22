@@ -7,6 +7,7 @@ import { Loader2, ShieldCheck, Store, UserRound } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import Image from "next/image";
 import { EmptyState } from "@/components/ui/empty-state";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -157,7 +158,7 @@ export default function AdminUsersPage() {
                       <div className="flex items-center gap-3">
                         <span className="grid h-8 w-8 place-items-center rounded-full bg-sunken text-xs font-bold text-neutral">
                           {u.image ? (
-                            <img src={u.image} alt="" className="h-full w-full rounded-full object-cover" />
+                            <Image src={u.image} alt="" width={32} height={32} className="h-full w-full rounded-full object-cover" />
                           ) : (
                             u.name
                               .split(" ")

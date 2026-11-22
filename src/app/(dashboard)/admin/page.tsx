@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ShieldCheck, ShoppingBag, Store, Users, Wallet } from "lucide-react";
+import { Loader2, Package, ShieldCheck, ShoppingBag, Store, Users, Wallet } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { api } from "@/lib/api";
@@ -39,7 +39,7 @@ export default function AdminPage() {
         { label: "Customers", value: stats.totalCustomers, icon: Users, href: "/admin/users?role=customer" },
         { label: "Menu items", value: stats.totalItems, icon: ShoppingBag, href: "/admin/menu" },
         { label: "Pending approval", value: stats.pendingItems, icon: ShieldCheck, href: "/admin/menu?status=pending" },
-        { label: "Orders", value: stats.totalOrders, icon: Package2Icon, href: "/orders" },
+        { label: "Orders", value: stats.totalOrders, icon: Package, href: "/orders" },
         { label: "Transactions", value: stats.totalTransactions, icon: Wallet, href: "/admin/transactions" },
       ]
     : [];
@@ -122,16 +122,5 @@ export default function AdminPage() {
         </section>
       </div>
     </RequireAuth>
-  );
-}
-
-function Package2Icon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden {...props}>
-      <path d="M16.5 9.4 7.5 4.21l0 0" />
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-      <line x1="12" y1="22.08" x2="12" y2="12" />
-    </svg>
   );
 }
