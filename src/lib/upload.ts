@@ -15,7 +15,6 @@ export async function uploadImage(file: File, maxEdge = 640): Promise<string> {
   const dataUri = await shrink(file, maxEdge);
   const result = await api<{ url: string }>("/api/upload", {
     method: "POST",
-    auth: false,
     body: { image: dataUri },
   });
   return result.url;

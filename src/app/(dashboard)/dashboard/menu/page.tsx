@@ -196,7 +196,8 @@ export default function VendorMenuPage() {
     }
   }
 
-  const atLimit = plan !== "premium" && limit !== null && activeCount >= limit;
+  const isAdmin = user?.role === "admin";
+  const atLimit = !isAdmin && plan !== "premium" && limit !== null && activeCount >= limit;
 
   return (
     <RequireAuth roles={["vendor", "admin"]}>
@@ -210,18 +211,20 @@ export default function VendorMenuPage() {
                 : `Free plan — ${activeCount} of ${limit} active items used.`}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={openCreate}
-            disabled={atLimit}
-            className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-white transition-colors hover:bg-primary-strong disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Plus className="h-4 w-4" aria-hidden />
-            Add item
-          </button>
+          {!isAdmin && (
+            <button
+              type="button"
+              onClick={openCreate}
+              disabled={atLimit}
+              className="inline-flex h-11 items-center gap-2 rounded-full bg-primary px-6 text-sm font-semibold text-white transition-colors hover:bg-primary-strong disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
+              Add item
+            </button>
+          )}
         </header>
 
-        {atLimit && (
+        {atLimit && !isAdmin && (
           <div className="rounded-xl border border-gold/30 bg-gold/10 p-4 text-sm">
             <p className="font-semibold text-neutral">Free plan limit reached</p>
             <p className="mt-1 text-muted">
