@@ -1,45 +1,23 @@
 import Link from "next/link";
 import { MenuCard, type MenuItem } from "@/components/menu/menu-card";
 import { Hero } from "@/components/home/hero";
+import { Reveal } from "@/components/motion/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { buttonVariants } from "@/components/ui/button";
 
-/** Demo content until the API is wired — shape matches the real payload. */
-const FEATURED: MenuItem[] = [
-  {
-    _id: "1",
-    itemName: "Margherita Classica",
-    category: "Classic",
-    price: 12.5,
-    location: "Dhanmondi, Dhaka",
-    description: "San Marzano tomato, fior di latte, fresh basil, olive oil.",
-    images: [],
-    vendor: { businessName: "Forno Vero" },
-    ratingAvg: 4.6,
-  },
-  {
-    _id: "2",
-    itemName: "Pepperoni Rustico",
-    category: "Meat Lovers",
-    price: 15.0,
-    location: "Gulshan, Dhaka",
-    description: "Double pepperoni, aged mozzarella, oregano, chilli oil.",
-    images: [],
-    vendor: { businessName: "Slice House" },
-    ratingAvg: 4.8,
-  },
-  {
-    _id: "3",
-    itemName: "Verdure Ortolano",
-    category: "Vegetarian",
-    price: 13.75,
-    location: "Banani, Dhaka",
-    description: "Roasted peppers, courgette, artichoke, basil pesto.",
-    images: [],
-    vendor: { businessName: "Green Oven" },
-    ratingAvg: 4.4,
-  },
-];
+async function getFeatured(): Promise<MenuItem[]> {
+  const base = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:5000";
+  try {
+    const res = await fetch(`${base}/api/menu?limit=6&sort=newest`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { data?: { items?: MenuItem[] } };
+    return data?.data?.items ?? [];
+  } catch {
+    return [];
+  }
+}
 
 const CATEGORIES = [
   { name: "Classic Pizzas", emoji: "🍕", count: 18 },
@@ -79,7 +57,8 @@ const STEPS = [
   { step: "Track it to the door", body: "The shop accepts, and you follow every status change in real time." },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const featured = await getFeatured();
   return (
     <>
       <Hero />
@@ -97,11 +76,17 @@ export default function HomePage() {
             }
           />
 
-          <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURED.map((item) => (
-              <MenuCard key={item._id} item={item} />
-            ))}
+          <Reveal>
+            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {featured.length === 0 ? (
+              <p className="col-span-full text-center text-sm text-muted">
+                No approved menu items yet — check back soon.
+              </p>
+            ) : (
+              featured.map((item) => <MenuCard key={item._id} item={item} />)
+            )}
           </div>
+          </Reveal>
         </div>
       </section>
 
