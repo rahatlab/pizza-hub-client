@@ -53,6 +53,8 @@ export default function MenuItemDetailPage() {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [favorited, setFavorited] = useState(false);
+  const [favBusy, setFavBusy] = useState(false);
 
   const [showOrder, setShowOrder] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -70,6 +72,9 @@ export default function MenuItemDetailPage() {
       const data = await api<ItemDetail>(`/api/menu/${id}`, { auth: false });
       setItem(data);
       setActiveImage(0);
+      if (user) {
+        setFavorited(user.favoriteItemIds.includes(id ?? ""));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not load this item");
     } finally {
@@ -80,6 +85,25 @@ export default function MenuItemDetailPage() {
   useEffect(() => {
     void load();
   }, [id]);
+
+  async function toggleFavorite() {
+    if (!id || !user) {
+      toast.error("Sign in to save favourites");
+      return;
+    }
+    setFavBusy(true);
+    try {
+      const data = await api<{ favorite: boolean }>("/api/menu/" + id + "/favorite", {
+        method: "POST",
+      });
+      setFavorited(data.favorite);
+      toast.success(data.favorite ? "Added to favourites" : "Removed from favourites");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not update favourite");
+    } finally {
+      setFavBusy(false);
+    }
+  }
 
   async function submitReview(event: React.FormEvent) {
     event.preventDefault();
@@ -280,9 +304,11 @@ export default function MenuItemDetailPage() {
               </button>
               <button
                 type="button"
-                className="inline-flex h-11 items-center gap-2 rounded-full border border-line bg-raised px-6 text-sm font-semibold text-neutral transition-colors hover:border-line-strong"
+                onClick={() => void toggleFavorite()}
+                disabled={favBusy}
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-line bg-raised px-6 text-sm font-semibold text-neutral transition-colors hover:border-line-strong disabled:opacity-60"
               >
-                Save to favourites
+                {favorited ? "♥ Saved" : "Save to favourites"}
               </button>
             </div>
 

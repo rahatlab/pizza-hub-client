@@ -154,7 +154,8 @@ export default function OrdersPage() {
             emoji="📦"
           />
         ) : (
-          <ul className="space-y-3">
+          <>
+            <ul className="space-y-3">
             {orders.map((order) => (
               <li key={order.id}>
                 <Link
@@ -218,6 +219,7 @@ export default function OrdersPage() {
               </button>
             </div>
           )}
+          </>
         )}
       </div>
     </RequireAuth>

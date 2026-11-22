@@ -29,6 +29,7 @@ export default function AdminUsersPage() {
   const searchParams = useSearchParams();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [roleFilter, setRoleFilter] = useState(searchParams.get("role") ?? "");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -45,6 +46,7 @@ export default function AdminUsersPage() {
   async function load() {
     setLoading(true);
     try {
+      setError(null);
       const params = new URLSearchParams();
       if (roleFilter) params.set("role", roleFilter);
       if (debouncedSearch) params.set("search", debouncedSearch);
@@ -52,7 +54,9 @@ export default function AdminUsersPage() {
       const data = await api<{ users: User[] }>(`/api/vendor/admin/users${qs ? `?${qs}` : ""}`);
       setUsers(data.users);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not load users");
+      const msg = err instanceof Error ? err.message : "Could not load users";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -136,6 +140,17 @@ export default function AdminUsersPage() {
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="ph-card h-16 animate-pulse bg-sunken" />
             ))}
+          </div>
+        ) : error ? (
+          <div className="ph-card p-8 text-center">
+            <p className="text-sm text-muted">{error}</p>
+            <button
+              type="button"
+              onClick={() => void load()}
+              className="mt-4 inline-flex h-9 items-center rounded-full border border-line bg-raised px-4 text-sm font-medium text-neutral transition-colors hover:bg-sunken"
+            >
+              Retry
+            </button>
           </div>
         ) : users.length === 0 ? (
           <EmptyState title="No users" description="No accounts match this filter." emoji="👥" />
