@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, Loader2, MapPin, Package } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { RequireAuth } from "@/components/auth/require-auth";
 import { api } from "@/lib/api";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { buttonVariants } from "@/components/ui/button";
 import { cn, formatPrice } from "@/lib/utils";
 
@@ -82,6 +83,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
   const [note, setNote] = useState("");
+  const [confirmAction, setConfirmAction] = useState<{ status: string; label: string } | null>(null);
 
   async function load() {
     if (!id) return;
@@ -297,7 +299,11 @@ export default function OrderDetailPage() {
                         <button
                           key={action.status}
                           type="button"
-                          onClick={() => updateStatus(action.status)}
+                          onClick={() =>
+                            action.status === "cancelled"
+                              ? setConfirmAction({ status: "cancelled", label: action.label })
+                              : updateStatus(action.status)
+                          }
                           disabled={updating}
                           className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-strong disabled:opacity-60"
                         >
@@ -305,10 +311,21 @@ export default function OrderDetailPage() {
                           {action.label}
                         </button>
                       ))}
+                    {canUpdate && order.status === "placed" && (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmAction({ status: "cancelled", label: "Reject order" })}
+                        disabled={updating}
+                        className="inline-flex h-10 items-center gap-2 rounded-full border border-primary bg-primary-soft px-5 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-60"
+                      >
+                        {updating && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+                        Reject order
+                      </button>
+                    )}
                     {canCancel && (
                       <button
                         type="button"
-                        onClick={() => updateStatus("cancelled")}
+                        onClick={() => setConfirmAction({ status: "cancelled", label: "Cancel order" })}
                         disabled={updating}
                         className="inline-flex h-10 items-center gap-2 rounded-full border border-primary bg-primary-soft px-5 text-sm font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-60"
                       >
@@ -364,6 +381,23 @@ export default function OrderDetailPage() {
           </section>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmAction(null);
+        }}
+        title={confirmAction?.label ?? "Confirm"}
+        description="This action cannot be undone."
+        confirmLabel={confirmAction?.label ?? "Confirm"}
+        destructive
+        loading={updating}
+        onConfirm={async () => {
+          if (!confirmAction) return;
+          await updateStatus(confirmAction.status);
+          setConfirmAction(null);
+        }}
+      />
     </div>
   );
 }
