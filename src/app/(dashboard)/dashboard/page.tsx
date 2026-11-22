@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/components/auth/auth-provider";
+import { api } from "@/lib/api";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -28,24 +32,82 @@ export default function DashboardHomePage() {
   const copy = COPY[user.role];
   const firstName = user.name.split(" ")[0];
 
-  const stats =
-    user.role === "customer"
-      ? [
-          { label: "Orders placed", value: "0" },
-          { label: "Favourites", value: String(user.favoriteItemIds.length) },
-          { label: "Active orders", value: "0" },
-        ]
-      : user.role === "vendor"
-        ? [
-            { label: "Menu items", value: "0" },
-            { label: "Open orders", value: "0" },
+  const searchParams = useSearchParams();
+  const [stats, setStats] = useState<{ label: string; value: string }[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    const upgrade = searchParams.get("upgrade");
+    if (upgrade === "success") toast.success("Welcome to Premium! Your plan is now active.");
+    if (upgrade === "cancelled") toast.info("Checkout cancelled — you're still on the Free plan.");
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setStatsLoading(true);
+
+    (async () => {
+      try {
+        if (user.role === "vendor") {
+          const data = await api<{
+            totalItems: number;
+            activeItems: number;
+            pendingItems: number;
+            totalOrders: number;
+            pendingOrders: number;
+            deliveredOrders: number;
+          }>("/api/vendor/stats");
+          if (cancelled) return;
+          setStats([
+            { label: "Menu items", value: String(data.totalItems) },
+            { label: "Active items", value: String(data.activeItems) },
+            { label: "Open orders", value: String(data.pendingOrders) },
             { label: "Plan", value: user.plan === "premium" ? "Premium" : "Free" },
-          ]
-        : [
-            { label: "Registered users", value: "1" },
-            { label: "Menu items", value: "0" },
-            { label: "Transactions", value: "0" },
-          ];
+          ]);
+        } else if (user.role === "admin") {
+          const data = await api<{
+            totalUsers: number;
+            totalVendors: number;
+            totalCustomers: number;
+            totalItems: number;
+            pendingItems: number;
+            totalOrders: number;
+            totalTransactions: number;
+          }>("/api/vendor/admin/stats");
+          if (cancelled) return;
+          setStats([
+            { label: "Registered users", value: String(data.totalUsers) },
+            { label: "Vendors", value: String(data.totalVendors) },
+            { label: "Customers", value: String(data.totalCustomers) },
+            { label: "Menu items", value: String(data.totalItems) },
+            { label: "Pending items", value: String(data.pendingItems) },
+            { label: "Transactions", value: String(data.totalTransactions) },
+          ]);
+        } else {
+          const data = await api<{ orders?: { status: string }[]; pagination?: { total: number } }>(
+            "/api/orders",
+          );
+          const orders = (data as { orders?: { status: string }[] }).orders ?? [];
+          const active = orders.filter((o) => ["placed", "accepted", "preparing", "out_for_delivery"].includes(o.status)).length;
+          if (cancelled) return;
+          setStats([
+            { label: "Orders placed", value: String(orders.length) },
+            { label: "Active orders", value: String(active) },
+            { label: "Favourites", value: String(user.favoriteItemIds.length) },
+          ]);
+        }
+      } catch {
+        if (!cancelled) setStats([]);
+      } finally {
+        if (!cancelled) setStatsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   return (
     <div className="space-y-8">
@@ -79,13 +141,20 @@ export default function DashboardHomePage() {
         </div>
       </header>
 
-      <section className="grid gap-4 sm:grid-cols-3">
-        {stats.map((stat) => (
-          <div key={stat.label} className="ph-card p-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-faint">{stat.label}</p>
-            <p className="mt-2 font-display text-3xl font-semibold text-neutral">{stat.value}</p>
-          </div>
-        ))}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {statsLoading
+          ? Array.from({ length: user?.role === "admin" ? 6 : 4 }).map((_, i) => (
+              <div key={i} className="ph-card animate-pulse p-5">
+                <div className="h-3 w-20 rounded bg-sunken" />
+                <div className="mt-3 h-8 w-12 rounded bg-sunken" />
+              </div>
+            ))
+          : stats.map((stat) => (
+              <div key={stat.label} className="ph-card p-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-faint">{stat.label}</p>
+                <p className="mt-2 font-display text-3xl font-semibold text-neutral">{stat.value}</p>
+              </div>
+            ))}
       </section>
 
       <section className="ph-card overflow-hidden">
