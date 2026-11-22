@@ -12,8 +12,8 @@ async function getFeatured(): Promise<MenuItem[]> {
       next: { revalidate: 60 },
     });
     if (!res.ok) return [];
-    const data = (await res.json()) as { data?: { items?: MenuItem[] } };
-    return data?.data?.items ?? [];
+    const data = (await res.json()) as { data?: { items?: (MenuItem & { id?: string })[] } };
+    return (data?.data?.items ?? []).map((item) => ({ ...item, _id: item._id ?? item.id ?? "" }));
   } catch {
     return [];
   }
