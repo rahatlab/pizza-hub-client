@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { RequireAuth } from "@/components/auth/require-auth";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { api } from "@/lib/api";
 import { uploadImage } from "@/lib/upload";
@@ -58,6 +59,8 @@ export default function VendorMenuPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<MenuItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<MenuItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Form state
   const [name, setName] = useState("");
@@ -164,13 +167,21 @@ export default function VendorMenuPage() {
   }
 
   async function handleDelete(item: MenuItem) {
-    if (!window.confirm(`Delete "${item.itemName}"? This cannot be undone.`)) return;
+    setDeleteTarget(item);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await api(`/api/menu/${item.id}`, { method: "DELETE" });
+      await api(`/api/menu/${deleteTarget.id}`, { method: "DELETE" });
       toast.success("Item deleted");
+      setDeleteTarget(null);
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not delete item");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -231,7 +242,7 @@ export default function VendorMenuPage() {
             title="Your menu is empty"
             description="Publish your first pizza, side or drink and it will show up on the public menu after approval."
             emoji="🧑‍🍳"
-            actionHref="#"
+            onAction={openCreate}
             actionLabel="Add your first item"
           />
         ) : (
@@ -441,6 +452,21 @@ export default function VendorMenuPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Delete menu item?"
+        description={
+          deleteTarget ? `Delete "${deleteTarget.itemName}"? This cannot be undone.` : undefined
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleting}
+        onConfirm={confirmDelete}
+      />
     </RequireAuth>
   );
 }
