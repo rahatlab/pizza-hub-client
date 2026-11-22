@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Loader2, ShieldCheck, Store, UserRound } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { RequireAuth } from "@/components/auth/require-auth";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ interface User {
   role: string;
   image: string;
   plan: string;
+  isBlocked?: boolean;
   createdAt: string;
   businessName: string;
 }
@@ -27,7 +29,17 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState(searchParams.get("role") ?? "");
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [changing, setChanging] = useState<string | null>(null);
+  const [blocking, setBlocking] = useState<string | null>(null);
+  const [blockTarget, setBlockTarget] = useState<User | null>(null);
+  const [roleChangeTarget, setRoleChangeTarget] = useState<{ user: User; role: string } | null>(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
   // Keep filter in sync with ?role= deep links.
   useEffect(() => {
@@ -38,8 +50,11 @@ export default function AdminUsersPage() {
   async function load() {
     setLoading(true);
     try {
-      const params = roleFilter ? `?role=${roleFilter}` : "";
-      const data = await api<{ users: User[] }>(`/api/vendor/admin/users${params}`);
+      const params = new URLSearchParams();
+      if (roleFilter) params.set("role", roleFilter);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      const qs = params.toString();
+      const data = await api<{ users: User[] }>(`/api/vendor/admin/users${qs ? `?${qs}` : ""}`);
       setUsers(data.users);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not load users");
@@ -50,21 +65,43 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     void load();
-  }, [roleFilter]);
+  }, [roleFilter, debouncedSearch]);
 
-  async function changeRole(userId: string, role: string) {
-    setChanging(userId);
+  async function confirmChangeRole() {
+    if (!roleChangeTarget) return;
+    const { user: u, role } = roleChangeTarget;
+    setChanging(u.id);
     try {
-      await api(`/api/vendor/admin/users/${userId}/role`, {
+      await api(`/api/vendor/admin/users/${u.id}/role`, {
         method: "PATCH",
         body: { role },
       });
       toast.success("Role updated");
+      setRoleChangeTarget(null);
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not change role");
     } finally {
       setChanging(null);
+    }
+  }
+
+  async function confirmBlock() {
+    if (!blockTarget) return;
+    const next = !(blockTarget.isBlocked ?? false);
+    setBlocking(blockTarget.id);
+    try {
+      await api(`/api/vendor/admin/users/${blockTarget.id}/block`, {
+        method: "PATCH",
+        body: { blocked: next },
+      });
+      toast.success(next ? "User blocked" : "User unblocked");
+      setBlockTarget(null);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not update user");
+    } finally {
+      setBlocking(null);
     }
   }
 
@@ -78,6 +115,14 @@ export default function AdminUsersPage() {
               Every registered customer, vendor and admin on the platform.
             </p>
           </div>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search name or email"
+            aria-label="Search users"
+            className="h-10 w-48 rounded-full border border-line bg-raised px-4 text-sm text-neutral outline-none focus:border-primary"
+          />
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
@@ -154,17 +199,42 @@ export default function AdminUsersPage() {
                       {new Date(u.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-4 py-3">
+                      {(u.isBlocked ?? false) && (
+                        <span className="mb-1 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                          Blocked
+                        </span>
+                      )}
                       {u.id !== currentUser?.id && (
                         <select
                           value={u.role}
-                          onChange={(e) => changeRole(u.id, e.target.value)}
-                          disabled={changing === u.id}
+                          onChange={(e) => {
+                            if (e.target.value !== u.role) {
+                              setRoleChangeTarget({ user: u, role: e.target.value });
+                            }
+                          }}
+                          disabled={changing === u.id || (u.isBlocked ?? false)}
                           className="h-8 rounded-lg border border-line bg-raised px-2 text-xs text-neutral outline-none focus:border-primary disabled:opacity-60"
                         >
                           <option value="customer">Customer</option>
                           <option value="vendor">Vendor</option>
                           <option value="admin">Admin</option>
                         </select>
+                      )}
+                      {u.id !== currentUser?.id && (
+                        <button
+                          type="button"
+                          onClick={() => setBlockTarget(u)}
+                          disabled={blocking === u.id}
+                          className="ml-2 inline-flex h-8 items-center rounded-lg border border-line bg-raised px-2 text-xs font-semibold text-neutral transition-colors hover:border-line-strong disabled:opacity-60"
+                        >
+                          {blocking === u.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                          ) : (u.isBlocked ?? false) ? (
+                            "Unblock"
+                          ) : (
+                            "Block"
+                          )}
+                        </button>
                       )}
                       {changing === u.id && (
                         <Loader2 className="ml-2 inline h-3.5 w-3.5 animate-spin text-muted" aria-hidden />
@@ -177,6 +247,39 @@ export default function AdminUsersPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={roleChangeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setRoleChangeTarget(null);
+        }}
+        title="Change user role?"
+        description={
+          roleChangeTarget
+            ? `Change ${roleChangeTarget.user.name}'s role to ${roleChangeTarget.role}?`
+            : undefined
+        }
+        confirmLabel="Change role"
+        loading={changing !== null}
+        onConfirm={confirmChangeRole}
+      />
+
+      <ConfirmDialog
+        open={blockTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setBlockTarget(null);
+        }}
+        title={blockTarget?.isBlocked ? "Unblock user?" : "Block user?"}
+        description={
+          blockTarget
+            ? `${blockTarget.isBlocked ? "Unblock" : "Block"} ${blockTarget.name}? Blocked users cannot use protected features.`
+            : undefined
+        }
+        confirmLabel={blockTarget?.isBlocked ? "Unblock" : "Block"}
+        destructive={!blockTarget?.isBlocked}
+        loading={blocking !== null}
+        onConfirm={confirmBlock}
+      />
     </RequireAuth>
   );
 }
