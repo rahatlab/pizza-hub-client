@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, ShieldCheck, Store, UserRound } from "lucide-react";
@@ -22,10 +23,17 @@ interface User {
 
 export default function AdminUsersPage() {
   const { user: currentUser } = useAuth();
+  const searchParams = useSearchParams();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [roleFilter, setRoleFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState(searchParams.get("role") ?? "");
   const [changing, setChanging] = useState<string | null>(null);
+
+  // Keep filter in sync with ?role= deep links.
+  useEffect(() => {
+    const r = searchParams.get("role");
+    if (r !== null && r !== roleFilter) setRoleFilter(r);
+  }, [searchParams]);
 
   async function load() {
     setLoading(true);

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check, Loader2, X } from "lucide-react";
@@ -28,10 +29,16 @@ interface Item {
 
 export default function AdminMenuPage() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState("pending");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") ?? "pending");
   const [acting, setActing] = useState<string | null>(null);
+
+  useEffect(() => {
+    const s = searchParams.get("status");
+    if (s !== null && s !== statusFilter) setStatusFilter(s);
+  }, [searchParams]);
 
   async function load() {
     setLoading(true);
