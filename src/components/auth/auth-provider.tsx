@@ -11,6 +11,7 @@ export interface AuthUser {
   name: string;
   email: string;
   role: Role;
+  isBlocked: boolean;
   image: string;
   phone: string;
   address: string;
